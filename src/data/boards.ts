@@ -228,4 +228,5 @@ export const boardTypeLabels: Record<BoardType, string> = {
   faq: "자주 묻는 질문",
   inquiry: "1:1 문의",
   event: "이벤트",
+  review: "구매후기",
 };

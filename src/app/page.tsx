@@ -1,19 +1,26 @@
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { Banner, ProductCard, ReviewCard } from "@/components/ui";
-import { products, getBestProducts, getHotProducts, getProductsByBrand } from "@/data/products";
-import { banners, reviews } from "@/data/banners";
+import { getProducts, getBestProducts, getHotProducts, getActiveBanners } from "@/lib/supabase/queries";
+import { reviews } from "@/data/banners";
 
-export default function HomePage() {
-  const bestProducts = getBestProducts().slice(0, 4);
-  const hotProducts = getHotProducts().slice(0, 4);
-  const samsungProducts = getProductsByBrand("Samsung").slice(0, 4);
-  const appleProducts = getProductsByBrand("Apple").slice(0, 4);
+export const revalidate = 60; // Revalidate every 60 seconds
+
+export default async function HomePage() {
+  const [allProducts, bestProducts, hotProducts, banners] = await Promise.all([
+    getProducts(),
+    getBestProducts(),
+    getHotProducts(),
+    getActiveBanners(),
+  ]);
+
+  const samsungProducts = allProducts.filter(p => p.brand === "Samsung").slice(0, 4);
+  const appleProducts = allProducts.filter(p => p.brand === "Apple").slice(0, 4);
 
   return (
     <div>
       {/* Hero Banner */}
-      <Banner banners={banners.filter((b) => b.isActive)} />
+      <Banner banners={banners} />
 
       {/* Best Deal Section */}
       <section className="py-12 bg-white">
@@ -29,7 +36,7 @@ export default function HomePage() {
             </Link>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {bestProducts.map((product) => (
+            {bestProducts.slice(0, 4).map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
           </div>
@@ -54,7 +61,7 @@ export default function HomePage() {
             </Link>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {hotProducts.map((product) => (
+            {hotProducts.slice(0, 4).map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
           </div>

@@ -5,13 +5,13 @@ import { useParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { ChevronLeft, Check, Phone, MessageCircle } from "lucide-react";
-import { getProductById } from "@/data/products";
+import { useProduct } from "@/lib/supabase/hooks";
 import { getPlansByCarrier } from "@/data/banners";
 import { Carrier, SubscriptionType, DiscountType } from "@/types";
 
 export default function ProductDetailPage() {
   const params = useParams();
-  const product = getProductById(Number(params.id));
+  const { product, loading, error } = useProduct(Number(params.id));
 
   const [selectedCarrier, setSelectedCarrier] = useState<Carrier>("SKT");
   const [selectedSubscription, setSelectedSubscription] = useState<SubscriptionType>("번호이동");
@@ -20,7 +20,18 @@ export default function ProductDetailPage() {
   const [selectedStorage, setSelectedStorage] = useState(0);
   const [selectedPlan, setSelectedPlan] = useState(0);
 
-  if (!product) {
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-text-muted">상품 정보를 불러오는 중...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !product) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">

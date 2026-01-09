@@ -81,20 +81,24 @@ export interface BoardPost {
   author: string;
   views: number;
   createdAt: string;
-  updatedAt: string;
+  updatedAt?: string;
   isNotice?: boolean;
+  isPinned?: boolean;
   answer?: string;
   answeredAt?: string;
+  rating?: number;
+  productId?: number;
+  productName?: string;
 }
 
-export type BoardType = "notice" | "qna" | "faq" | "inquiry" | "event";
+export type BoardType = "notice" | "qna" | "faq" | "inquiry" | "event" | "review";
 
 // 배너 관련 타입
 export interface Banner {
   id: number;
   title: string;
   subtitle?: string;
-  image: string;
+  image?: string | null;
   link: string;
   isActive: boolean;
   order: number;

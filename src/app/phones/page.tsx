@@ -4,13 +4,15 @@ import { useState, useMemo, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Grid, List, SlidersHorizontal, X } from "lucide-react";
 import { ProductCard, ProductFilter, Pagination } from "@/components/ui";
-import { products, filterProducts } from "@/data/products";
+import { useProducts } from "@/lib/supabase/hooks";
 
 function PhonesContent() {
   const searchParams = useSearchParams();
   const brandParam = searchParams.get("brand");
   const filterParam = searchParams.get("filter");
   const categoryParam = searchParams.get("category");
+
+  const { products, loading, error } = useProducts();
 
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [showMobileFilter, setShowMobileFilter] = useState(false);
@@ -25,11 +27,22 @@ function PhonesContent() {
 
   // Filter products
   const filteredProducts = useMemo(() => {
-    let result = filterProducts({
-      brand: filters.brand,
-      carrier: filters.carrier,
-      subscriptionType: filters.subscriptionType,
-    });
+    let result = [...products];
+
+    // Apply filters
+    if (filters.brand?.length) {
+      result = result.filter((p) => filters.brand.includes(p.brand));
+    }
+    if (filters.carrier?.length) {
+      result = result.filter((p) =>
+        p.carrier.some((c) => filters.carrier?.includes(c))
+      );
+    }
+    if (filters.subscriptionType?.length) {
+      result = result.filter((p) =>
+        p.subscriptionType.some((s) => filters.subscriptionType?.includes(s))
+      );
+    }
 
     // Apply URL params
     if (filterParam === "best") {
@@ -43,7 +56,7 @@ function PhonesContent() {
     }
 
     return result;
-  }, [filters, filterParam, categoryParam]);
+  }, [products, filters, filterParam, categoryParam]);
 
   // Paginate
   const paginatedProducts = useMemo(() => {
@@ -71,6 +84,30 @@ function PhonesContent() {
     if (categoryParam === "kids") return "키즈폰";
     return "전체 상품";
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background-alt flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-text-muted">상품을 불러오는 중...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background-alt flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-500 mb-4">데이터를 불러오는데 실패했습니다.</p>
+          <button onClick={() => window.location.reload()} className="btn-primary">
+            다시 시도
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background-alt">
